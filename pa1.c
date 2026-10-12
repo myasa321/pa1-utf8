@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 // checks if a string is ASCII, returns one if it is, zero if not
 uint8_t is_ascii(char string[])
@@ -78,9 +79,12 @@ int32_t utf8_strlen(char str[]) {
 // Extracts the substring from codepoint index start (inclusive) to end (exclusive) and prints it
 void utf8_substring(const char str[], int start, int end) {
     //Implement utf8_substring in the body of this function!
+    if (start < 0 || end < 0 || start >= end) {
+        return;
+    }
     int index = 0;
     int curr = 0;
-    while (curr < end) {
+    while (curr < end && str[index] != '\0') {
         int size = 1;
         unsigned char first_byte = (unsigned char)str[index];
         if ((first_byte & 0xF8) == 0b11110000) {
@@ -167,7 +171,8 @@ int is_animal_emoji_at(const char str[], int index){
 int main(int argc, char **argv) {
     char name[100];
     printf("Enter a UTF-8 encoded string: ");
-    fgets(name, sizeof(name), stdin);
+    while (fgets(name, sizeof(name), stdin)) {
+    name[strcspn(name, "\n")] = 0;
     printf("\n");
 
     if (is_ascii(name) == 0) {
@@ -210,11 +215,16 @@ int main(int argc, char **argv) {
     printf("\n");
 
     printf("Animal emojis: ");
-    for (int i = 0; name[i] != '\0'; i++) {
-        if (is_animal_emoji_at(name, i) == 1) {
+    int cp_index = 0;
+    for (int i = 0; name[i] != '\0';) {
+        if (is_animal_emoji_at(name, cp_index) == 1) {
             for (int j = 0; j < codepoint_size(&name[i]); j++) {
                 printf("%c", name[i+j]);
             }
         }
+        i += codepoint_size(&name[i]);
+        cp_index++;
     }
+    printf("\n");
+}
 }
